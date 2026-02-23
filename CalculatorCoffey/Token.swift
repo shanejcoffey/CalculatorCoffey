@@ -8,9 +8,25 @@
 import Foundation
 
 enum TokenType: String {
-    case integer = "INTEGER"
+    case number = "NUMBER"
     case plus = "PLUS"
     case eof = "EOF"
+    case minus = "MINUS"
+    case multiply = "MUL"
+    case divide = "DIV"
+    case lParen = "LPAREN"
+    case rParen = "RPAREN"
+    case pow = "POW"
+}
+
+extension TokenType {
+    var isAddOperator: Bool {
+        self == .plus || self == .minus
+    }
+    
+    var isMulOperator: Bool {
+        self == .multiply || self == .divide
+    }
 }
 
 class Token {

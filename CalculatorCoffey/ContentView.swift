@@ -8,14 +8,28 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var text = ""
+    @State var result = ""
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            TextField("Enter equation", text: $text)
+            Button("calculate") {
+                do {
+                    let interpreter = try Interpreter(text)
+                    let value = try interpreter.interpret()
+                    result = "\(value)"
+                } catch let error as ParserError {
+                    result = error.errorDescription ?? "idk what happened"
+                } catch let error as LexerError {
+                    result = error.errorDescription ?? "idk what happened"
+                } catch let error as InterpreterError {
+                    result = error.errorDescription ?? "idk what happened"
+                } catch {
+                    result = "Unknown error"
+                }
+            }
+            Text(result)
         }
-        .padding()
     }
 }
 

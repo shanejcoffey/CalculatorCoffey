@@ -7,10 +7,10 @@
 
 import Foundation
 
-enum InterpreterError: Error {
+enum ParserError: LocalizedError {
     case unexpectedTokenType(expected: TokenType, actual: TokenType, position: Int)
     
-    var info: String {
+    var errorDescription: String? {
         switch self {
         case .unexpectedTokenType(let expected, let actual, let position):
             return "Syntax error at position \(position): expected \(expected), got \(actual)"
@@ -18,69 +18,76 @@ enum InterpreterError: Error {
     }
 }
 
-class Interpreter {
-    var currentToken: Token?
-    var lexer: Lexer
+class Parser {
+    var currentToken: Token
+    let lexer: Lexer
     
-    init(text: String) {
+    init(_ text: String) throws {
         lexer = Lexer(text)
-        currentToken = try? lexer.getNextToken()
+        currentToken = try lexer.getNextToken()
     }
     
-    func eat(expected: TokenType) throws {
-        if currentToken?.type == expected {
+    private func eat(expected: TokenType) throws {
+        if currentToken.type == expected {
             currentToken = try lexer.getNextToken()
         } else {
-            throw InterpreterError.unexpectedTokenType(expected: expected, actual: currentToken?.type ?? .eof, position: lexer.pos)
+            throw ParserError.unexpectedTokenType(expected: expected, actual: currentToken.type, position: lexer.pos)
         }
     }
     
-    func factor() throws -> Int {
-        if currentToken?.type == .integer {
-            guard let token = currentToken, let value = Int(token.value) else {
-                throw InterpreterError.unexpectedTokenType(expected: .integer, actual: currentToken?.type ?? .eof, position: lexer.pos)
-            }
-            
-            try eat(expected: .integer)
-            return value
-        } else if currentToken?.type == .lParen {
+    private func factor() throws -> Node {
+        let token = currentToken
+        if token.type.isAddOperator {
+            try eat(expected: token.type)
+            return UnaryNode(token, node: try factor())
+        } else if token.type == .number {
+            try eat(expected: .number)
+            return NumberNode(token)
+        } else if token.type == .lParen {
             try eat(expected: .lParen)
-            let result = try expr()
+            let node = try expr()
             try eat(expected: .rParen)
-            return result
+            return node
         }
-        throw InterpreterError.unexpectedTokenType(expected: .integer, actual: currentToken?.type ?? .eof, position: lexer.pos)
+        throw ParserError.unexpectedTokenType(expected: .number, actual: token.type, position: lexer.pos)
     }
     
-    func term() throws -> Int {
-        var result = try factor()
-        
-        while currentToken?.type == .multiply || currentToken?.type == .divide {
-            if currentToken?.type == .multiply {
-                try eat(expected: .multiply)
-                result *= try factor()
-            } else if currentToken?.type == .divide {
-                try eat(expected: .divide)
-                result /= try factor()
-            }
+    private func power() throws -> Node {
+        var node = try factor()
+        while currentToken.type == .pow {
+            let operatorToken = currentToken
+            try eat(expected: .pow)
+            node = BinaryNode(operatorToken, left: node, right: try factor())
         }
         
-        return result
+        return node
     }
     
-    func expr() throws -> Int {
-        var result = try term()
-        
-        while currentToken?.type == .plus || currentToken?.type == .minus {
-            if currentToken?.type == .plus {
-                try eat(expected: .plus)
-                result += try term()
-            } else if currentToken?.type == .minus {
-                try eat(expected: .minus)
-                result -= try term()
-            }
+    private func term() throws -> Node {
+        var node = try power()
+        while currentToken.type.isMulOperator {
+            let operatorToken = currentToken
+            try eat(expected: operatorToken.type)
+            node = BinaryNode(operatorToken, left: node, right: try power())
         }
         
-        return result
+        return node
+    }
+    
+    private func expr() throws -> Node {
+        var node = try term()
+        while currentToken.type.isAddOperator {
+            let operatorToken = currentToken
+            try eat(expected: operatorToken.type)
+            node = BinaryNode(operatorToken, left: node, right: try term())
+        }
+        
+        return node
+    }
+    
+    func parse() throws -> Node {
+        let node = try expr()
+        try eat(expected: .eof)
+        return node
     }
 }

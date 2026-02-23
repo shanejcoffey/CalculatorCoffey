@@ -8,19 +8,23 @@
 import Foundation
 
 protocol Visitable {
-    func accept(_ visitor: Visitor) throws -> Double
+    func accept(_ interpreter: Interpreter) throws -> Double
 }
 
-class Node {
-    var token: Token
+class Node: Visitable {
+    let token: Token
     
     init(_ token: Token) {
         self.token = token
     }
+    
+    func accept(_ interpreter: Interpreter) throws -> Double {
+        fatalError("Node didn't implement accept")
+    }
 }
 
-class NumberNode: Node, Visitable {
-    var value: Double
+class NumberNode: Node {
+    let value: Double
     override init(_ token: Token) {
         guard let v = Double(token.value) else {
             fatalError("Invalid number token value: \(token.value)")
@@ -29,14 +33,27 @@ class NumberNode: Node, Visitable {
         super.init(token)
     }
     
-    func accept(_ visitor: NodeVisitor) throws -> Double {
-        try visitor.visitNumber(self)
+    override func accept(_ visitor: Interpreter) throws -> Double {
+        visitor.visitNumber(self)
     }
 }
 
-class BinaryNode: Node, Visitable {
-    var left: Node
-    var right: Node
+class UnaryNode: Node {
+    let node: Node
+    
+    init(_ token: Token, node: Node) {
+        self.node = node
+        super.init(token)
+    }
+    
+    override func accept(_ visitor: Interpreter) throws -> Double {
+        try visitor.visitUnary(self)
+    }
+}
+
+class BinaryNode: Node {
+    let left: Node
+    let right: Node
     
     init(_ token: Token, left: Node, right: Node) {
         self.left = left
@@ -44,7 +61,7 @@ class BinaryNode: Node, Visitable {
         super.init(token)
     }
     
-    func accept(_ visitor: NodeVisitor) throws -> Double {
+    override func accept(_ visitor: Interpreter) throws -> Double {
         try visitor.visitBinary(self)
     }
 }
