@@ -9,11 +9,14 @@ import Foundation
 
 enum InterpreterError: LocalizedError {
     case divideByZero(position: Int)
+    case unknownVariable(name: String, position: Int)
     
     var errorDescription: String? {
         switch self {
         case .divideByZero(let position):
             return "Tried to divide by zero at position \(position)"
+        case .unknownVariable(let name, let position):
+            return "Unknown variable \(name) at position \(position)"
         }
     }
 }
@@ -21,8 +24,11 @@ enum InterpreterError: LocalizedError {
 class Interpreter {
     let parser: Parser
     
-    init(_ text: String) throws {
+    let variables: [String: Double]
+    
+    init(_ text: String, variables: [String: Double] = [:]) throws {
         self.parser = try Parser(text)
+        self.variables = variables
     }
     
     func interpret() throws -> Double {
@@ -36,6 +42,13 @@ class Interpreter {
     
     func visitNumber(_ node: NumberNode) -> Double {
         return node.value
+    }
+    
+    func visitVariable(_ node: VariableNode) throws -> Double {
+        guard let value = variables[node.token.value] else {
+            throw InterpreterError.unknownVariable(name: node.token.value, position: parser.lexer.pos)
+        }
+        return value
     }
     
     func visitUnary(_ node: UnaryNode) throws -> Double {

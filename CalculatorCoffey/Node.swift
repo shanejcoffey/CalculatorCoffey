@@ -38,6 +38,16 @@ class NumberNode: Node {
     }
 }
 
+class VariableNode: Node {
+    override init(_ token: Token) {
+        super.init(token)
+    }
+    
+    override func accept(_ visitor: Interpreter) throws -> Double {
+        try visitor.visitVariable(self)
+    }
+}
+
 class UnaryNode: Node {
     let node: Node
     

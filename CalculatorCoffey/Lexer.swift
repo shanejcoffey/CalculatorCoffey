@@ -115,6 +115,11 @@ class Lexer {
             return Token(type: .pow, value: "^")
         }
         
+        if ch.isLetter {
+            advance()
+            return Token(type: .variable, value: String(ch))
+        }
+        
         throw LexerError.unexpectedCharacter(char: ch, position: pos)
     }
 }

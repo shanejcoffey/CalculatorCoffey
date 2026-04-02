@@ -17,6 +17,7 @@ enum TokenType: String {
     case lParen = "LPAREN"
     case rParen = "RPAREN"
     case pow = "POW"
+    case variable = "VAR"
 }
 
 extension TokenType {

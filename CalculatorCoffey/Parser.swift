@@ -43,6 +43,9 @@ class Parser {
         } else if token.type == .number {
             try eat(expected: .number)
             return NumberNode(token)
+        } else if token.type == .variable {
+            try eat(expected: .variable)
+            return VariableNode(token)
         } else if token.type == .lParen {
             try eat(expected: .lParen)
             let node = try expr()
