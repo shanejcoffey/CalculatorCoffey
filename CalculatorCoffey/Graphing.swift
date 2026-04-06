@@ -11,34 +11,40 @@ class Graphing {
     
     static let epsilon = 1e-9
     
-    static func MarchingSquares(minX: Double, minY: Double, maxX: Double, maxY: Double, resolution: Int, left: String, right: String) -> [[[Double]]] {
+    static func MarchingSquares(minX: Double, minY: Double, maxX: Double, maxY: Double, resolution: Int, left: String, right: String) -> [LineSegment] {
         
         let xStep = (maxX - minX) / Double(resolution)
         let yStep = (maxY - minY) / Double(resolution)
         var on = Array(repeating: Array(repeating: false, count: resolution + 1), count: resolution + 1)
         
+        
+        let interpreter: Interpreter
+        do {
+            try interpreter = Interpreter("\(left) - (\(right))", variables: [:])
+        } catch(let e) {
+            print(e)
+            return []
+        }
+        
         for i in 0...resolution {
             print("\(i)")
-            let x = minX + Double(i) * xStep
+            interpreter.variables["x"] = minX + Double(i) * xStep
             for j in 0...resolution {
-                let y = minY + Double(j) * yStep
+                interpreter.variables["y"] = minY + Double(j) * yStep
                 
-                var leftVal: Double
-                var rightVal: Double
+                var val: Double
                 do {
-                    let varDict = ["x": x, "y": y]
-                    leftVal = try Interpreter(left, variables: varDict).interpret()
-                    rightVal = try Interpreter(right, variables: varDict).interpret()
+                    val = try interpreter.interpret()
                 } catch(let e) {
                     print(e)
                     return []
                 }
                 
-                on[j][i] = leftVal >= rightVal
+                on[j][i] = val >= 0
             }
         }
         
-        var segments: [[[Double]]] = []
+        var segments: [LineSegment] = []
         
         for i in 0..<resolution {
             let x = minX + Double(i) * xStep
@@ -56,30 +62,30 @@ class Graphing {
                 if bR { num += 2 }
                 if bL { num += 1 }
                 
-                let l = [roundWithEpsilon(x), roundWithEpsilon(y + 0.5 * yStep)]
-                let r = [roundWithEpsilon(x + xStep), roundWithEpsilon(y + 0.5 * yStep)]
-                let b = [roundWithEpsilon(x + 0.5 * xStep), roundWithEpsilon(y)]
-                let t = [roundWithEpsilon(x + 0.5 * xStep), roundWithEpsilon(y + yStep)]
+                let l = Point(roundWithEpsilon(x), roundWithEpsilon(y + 0.5 * yStep))
+                let r = Point(roundWithEpsilon(x + xStep), roundWithEpsilon(y + 0.5 * yStep))
+                let b = Point(roundWithEpsilon(x + 0.5 * xStep), roundWithEpsilon(y))
+                let t = Point(roundWithEpsilon(x + 0.5 * xStep), roundWithEpsilon(y + yStep))
                 
                 switch num {
                 case 1, 14:
-                    segments.append([l, b])
+                    segments.append(LineSegment(l, b))
                 case 2, 13:
-                    segments.append([b, r])
+                    segments.append(LineSegment(b, r))
                 case 3, 12:
-                    segments.append([l, r])
+                    segments.append(LineSegment(l, r))
                 case 4, 11:
-                    segments.append([t, r])
+                    segments.append(LineSegment(t, r))
                 case 5:
-                    segments.append([l, b])
-                    segments.append([t, r])
+                    segments.append(LineSegment(l, b))
+                    segments.append(LineSegment(t, r))
                 case 6, 9:
-                    segments.append([t, b])
+                    segments.append(LineSegment(t, b))
                 case 7, 8:
-                    segments.append([l, t])
+                    segments.append(LineSegment(l, t))
                 case 10:
-                    segments.append([l, t])
-                    segments.append([b, r])
+                    segments.append(LineSegment(l, t))
+                    segments.append(LineSegment(b, r))
                 default: break
                 }
             }
@@ -96,9 +102,19 @@ class Graphing {
 struct LineSegment {
     let start: Point
     let end: Point
+    
+    init(_ start: Point, _ end: Point) {
+        self.start = start
+        self.end = end
+    }
 }
 
 struct Point {
     let x: Double
     let y: Double
+    
+    init(_ x: Double, _ y: Double) {
+        self.x = x
+        self.y = y
+    }
 }

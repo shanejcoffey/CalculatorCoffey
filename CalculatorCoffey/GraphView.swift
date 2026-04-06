@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct GraphView: View {
-    let segments: [[[Double]]]
+    let segments: [LineSegment]
     let minX: Double
     let maxX: Double
     let minY: Double
@@ -38,13 +38,13 @@ struct GraphView: View {
                 
                 Path { path in
                     for s in segments {
-                        let p1 = s[0]
-                        let p2 = s[1]
+                        let p1 = s.start
+                        let p2 = s.end
                         
-                        let x1 = xOffset + CGFloat(p1[0] - minX) * scale
-                        let y1 = geometry.size.height - (yOffset + CGFloat(p1[1] - minY) * scale)
-                        let x2 = xOffset + CGFloat(p2[0] - minX) * scale
-                        let y2 = geometry.size.height - (yOffset + CGFloat(p2[1] - minY) * scale)
+                        let x1 = xOffset + CGFloat(p1.x - minX) * scale
+                        let y1 = geometry.size.height - (yOffset + CGFloat(p1.y - minY) * scale)
+                        let x2 = xOffset + CGFloat(p2.x - minX) * scale
+                        let y2 = geometry.size.height - (yOffset + CGFloat(p2.y - minY) * scale)
                         
                         path.move(to: CGPoint(x: x1, y: y1))
                         path.addLine(to: CGPoint(x: x2, y: y2))

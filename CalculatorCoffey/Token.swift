@@ -18,6 +18,8 @@ enum TokenType: String {
     case rParen = "RPAREN"
     case pow = "POW"
     case variable = "VAR"
+    case sin = "SIN"
+    case cos = "COS"
 }
 
 extension TokenType {
@@ -33,13 +35,15 @@ extension TokenType {
 class Token {
     let type: TokenType
     let value: String
+    let pos: Int
     
     var info: String {
         return "Token(\(type), \(value))"
     }
     
-    init(type: TokenType, value: String) {
+    init(type: TokenType, value: String, pos: Int = -1) {
         self.type = type
         self.value = value
+        self.pos = pos
     }
 }

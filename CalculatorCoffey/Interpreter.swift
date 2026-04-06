@@ -22,17 +22,16 @@ enum InterpreterError: LocalizedError {
 }
 
 class Interpreter {
-    let parser: Parser
-    
-    let variables: [String: Double]
+    let ast: Node
+    var variables: [String: Double]
     
     init(_ text: String, variables: [String: Double] = [:]) throws {
-        self.parser = try Parser(text)
+        let parser = try Parser(text)
+        ast = try parser.parse()
         self.variables = variables
     }
     
     func interpret() throws -> Double {
-        let ast = try parser.parse()
         return try visit(ast)
     }
     
@@ -46,7 +45,7 @@ class Interpreter {
     
     func visitVariable(_ node: VariableNode) throws -> Double {
         guard let value = variables[node.token.value] else {
-            throw InterpreterError.unknownVariable(name: node.token.value, position: parser.lexer.pos)
+            throw InterpreterError.unknownVariable(name: node.token.value, position: node.token.pos)
         }
         return value
     }
@@ -77,7 +76,7 @@ class Interpreter {
             return left * right
         case .divide:
             if right == 0 {
-                throw InterpreterError.divideByZero(position: parser.lexer.pos)
+                throw InterpreterError.divideByZero(position: node.token.pos)
             }
             return left / right
         case .pow:

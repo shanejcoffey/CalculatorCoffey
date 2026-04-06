@@ -73,51 +73,52 @@ class Lexer {
         skipWhitespace()
         
         guard let ch = currChar else {
-            return Token(type: .eof, value: "")
+            return Token(type: .eof, value: "", pos: pos)
         }
         
         if ch.isNumber || (ch == "." && peek()?.isNumber ?? false) {
-            return Token(type: .number, value: String(number()))
+            let p = pos
+            return Token(type: .number, value: String(number()), pos: p)
         }
         
         if ch == "+" {
             advance()
-            return Token(type: .plus, value: "+")
+            return Token(type: .plus, value: "+", pos: pos - 1)
         }
         
         if ch == "-" {
             advance()
-            return Token(type: .minus, value: "-")
+            return Token(type: .minus, value: "-", pos: pos - 1)
         }
         
         if ch == "*" {
             advance()
-            return Token(type: .multiply, value: "*")
+            return Token(type: .multiply, value: "*", pos: pos - 1)
         }
         
         if ch == "/" {
             advance()
-            return Token(type: .divide, value: "/")
+            return Token(type: .divide, value: "/", pos: pos - 1)
         }
         
         if ch == "(" {
             advance()
-            return Token(type: .lParen, value: "(")
+            return Token(type: .lParen, value: "(", pos: pos - 1)
         }
         
         if ch == ")" {
             advance()
-            return Token(type: .rParen, value: ")")
+            return Token(type: .rParen, value: ")", pos: pos - 1)
         }
         
         if ch == "^" {
             advance()
-            return Token(type: .pow, value: "^")
+            return Token(type: .pow, value: "^", pos: pos - 1)
         }
         
         if ch.isLetter {
             advance()
-            return Token(type: .variable, value: String(ch))
+            return Token(type: .variable, value: String(ch), pos: pos - 1)
         }
         
         throw LexerError.unexpectedCharacter(char: ch, position: pos)

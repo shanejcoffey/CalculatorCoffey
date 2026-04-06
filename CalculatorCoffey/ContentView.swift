@@ -12,7 +12,7 @@ struct ContentView: View {
     @State var result = ""
     @State var graphText = ""
     
-    @State var segments: [[[Double]]] = []
+    @State var segments: [LineSegment] = []
     @State var minX: Double = -7
     @State var maxX: Double = 7
     @State var minY: Double = -10
@@ -35,7 +35,6 @@ struct ContentView: View {
                 } catch {
                     result = "Unknown error"
                 }
-                print(UIScreen.main.bounds.width)
             }
             Text(result)
             
