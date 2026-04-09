@@ -18,8 +18,8 @@ enum TokenType: String {
     case rParen = "RPAREN"
     case pow = "POW"
     case variable = "VAR"
-    case sin = "SIN"
-    case cos = "COS"
+    case function = "FUNC"
+    case comma = "COMMA"
 }
 
 extension TokenType {

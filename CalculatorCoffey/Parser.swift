@@ -35,32 +35,68 @@ class Parser {
         }
     }
     
+    private func arguments() throws -> [Node] {
+        var args: [Node] = []
+        
+        try eat(expected: .lParen)
+        
+        if currentToken.type != .rParen {
+            args.append(try expr())
+            while currentToken.type == .comma {
+                try eat(expected: .comma)
+                args.append(try expr())
+            }
+        }
+        
+        try eat(expected: .rParen)
+        
+        return args
+    }
+    
     private func factor() throws -> Node {
-        let token = currentToken
-        if token.type.isAddOperator {
-            try eat(expected: token.type)
+        switch currentToken.type {
+            
+        case let type where type.isAddOperator:
+            let token = currentToken
+            try eat(expected: type)
             return UnaryNode(token, node: try factor())
-        } else if token.type == .number {
+            
+        case .number:
+            let token = currentToken
             try eat(expected: .number)
             return NumberNode(token)
-        } else if token.type == .variable {
+            
+        case .variable:
+            let token = currentToken
             try eat(expected: .variable)
             return VariableNode(token)
-        } else if token.type == .lParen {
+            
+        case .lParen:
             try eat(expected: .lParen)
             let node = try expr()
             try eat(expected: .rParen)
             return node
+            
+        case .function:
+            let token = currentToken
+            try eat(expected: .function)
+            let args = try arguments()
+            return FunctionNode(token, args: args)
+            
+        default:
+            return Node(Token(type: .divide, value: "DIVIDE"))
+            // throw ParserError.unexpectedTokenType(expected: .number, actual: type, position: lexer.pos)
+            
         }
-        throw ParserError.unexpectedTokenType(expected: .number, actual: token.type, position: lexer.pos)
     }
     
     private func power() throws -> Node {
-        var node = try factor()
-        while currentToken.type == .pow {
+        let node = try factor()
+        
+        if currentToken.type == .pow {
             let operatorToken = currentToken
             try eat(expected: .pow)
-            node = BinaryNode(operatorToken, left: node, right: try factor())
+            return BinaryNode(operatorToken, left: node, right: try power())
         }
         
         return node

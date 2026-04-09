@@ -75,3 +75,18 @@ class BinaryNode: Node {
         try visitor.visitBinary(self)
     }
 }
+
+class FunctionNode: Node {
+    let name: String
+    let args: [Node]
+    
+    init(_ token: Token, args: [Node]) {
+        self.name = token.value
+        self.args = args
+        super.init(token)
+    }
+    
+    override func accept(_ visitor: Interpreter) throws -> Double {
+        try visitor.visitFunction(self)
+    }
+}

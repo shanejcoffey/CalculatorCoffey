@@ -10,6 +10,7 @@ import Foundation
 enum InterpreterError: LocalizedError {
     case divideByZero(position: Int)
     case unknownVariable(name: String, position: Int)
+    case badArguments(name: String, position: Int)
     
     var errorDescription: String? {
         switch self {
@@ -17,6 +18,8 @@ enum InterpreterError: LocalizedError {
             return "Tried to divide by zero at position \(position)"
         case .unknownVariable(let name, let position):
             return "Unknown variable \(name) at position \(position)"
+        case .badArguments(let name, let position):
+            return "Bad arguments to \(name) at position \(position)"
         }
     }
 }
@@ -83,6 +86,41 @@ class Interpreter {
             return pow(left, right)
         default:
             fatalError("Visited BinaryNode with invalid operator: \(node.token.type)")
+        }
+    }
+    
+    func visitFunction(_ node: FunctionNode) throws -> Double {
+        switch node.name {
+        case "sin":
+            guard node.args.count == 1 else {
+                throw InterpreterError.badArguments(name: node.name, position: node.token.pos)
+            }
+            return sin(try visit(node.args[0]))
+        
+        case "cos":
+            guard node.args.count == 1 else {
+                throw InterpreterError.badArguments(name: node.name, position: node.token.pos)
+            }
+            return cos(try visit(node.args[0]))
+            
+        case "tan":
+            guard node.args.count == 1 else {
+                throw InterpreterError.badArguments(name: node.name, position: node.token.pos)
+            }
+            return tan(try visit(node.args[0]))
+            
+        case "log":
+            guard node.args.count == 1 || node.args.count == 2 else {
+                throw InterpreterError.badArguments(name: node.name, position: node.token.pos)
+            }
+            if node.args.count == 1 {
+                return log10(try visit(node.args[0]))
+            } else {
+                return log2(try visit(node.args[1])) / log2(try visit(node.args[0]))
+            }
+        
+        default:
+            throw InterpreterError.unknownVariable(name: node.name, position: node.token.pos)
         }
     }
 }

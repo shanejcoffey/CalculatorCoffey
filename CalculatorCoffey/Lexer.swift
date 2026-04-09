@@ -69,6 +69,15 @@ class Lexer {
         return num
     }
     
+    private func function() -> String {
+        var id = ""
+        while let ch = currChar, ch.isLetter || ch.isNumber {
+            id.append(String(ch))
+            advance()
+        }
+        return id
+    }
+    
     func getNextToken() throws -> Token {
         skipWhitespace()
         
@@ -117,8 +126,16 @@ class Lexer {
         }
         
         if ch.isLetter {
-            advance()
-            return Token(type: .variable, value: String(ch), pos: pos - 1)
+            let start = pos
+            let function = function()
+            
+            let functions: Set<String> = ["sin", "cos", "tan", "log"]
+            
+            if functions.contains(function) {
+                return Token(type: .function, value: function, pos: start)
+            } else {
+                return Token(type: .variable, value: function, pos: start)
+            }
         }
         
         throw LexerError.unexpectedCharacter(char: ch, position: pos)
