@@ -11,13 +11,13 @@ struct ContentView: View {
     @State var text = ""
     @State var result = ""
     @State var graphText = ""
-    
+
     @State var segments: [LineSegment] = []
     @State var minX: Double = -7
     @State var maxX: Double = 7
     @State var minY: Double = -10
     @State var maxY: Double = 10
-    
+
     var body: some View {
         VStack {
             TextField("Enter equation", text: $text)
@@ -37,7 +37,7 @@ struct ContentView: View {
                 }
             }
             Text(result)
-            
+
             TextField("Enter graph", text: $graphText)
                 .textInputAutocapitalization(.never)
             Button("get points") {
@@ -47,27 +47,24 @@ struct ContentView: View {
                     print("invalid equation")
                     return
                 }
-                segments = []
-                Task.detached {
-                    var buffer: [LineSegment] = []
-                    
-                    Graphing.MarchingSquares(minX: minX, minY: minY, maxX: maxX, maxY: maxY, resolution: 500, left: String(parts[0]), right: String(parts[1])) { segment in
-                        buffer.append(segment)
-                        if buffer.count >= 100 {
-                            let chunk = buffer
-                            buffer.removeAll()
-                            DispatchQueue.main.async {
-                                segments.append(contentsOf: chunk)
-                            }
-                        }
-                    }
-                    
-                    DispatchQueue.main.async {
-                        segments.append(contentsOf: buffer)
-                    }
-                }
+                segments = Graphing.MarchingSquares(
+                    minX: minX,
+                    minY: minY,
+                    maxX: maxX,
+                    maxY: maxY,
+                    resolution: 5000,
+                    left: String(parts[0]),
+                    right: String(parts[1])
+                )
+
             }
-            GraphView(segments: segments, minX: minX, maxX: maxX, minY: minY, maxY: maxY)
+            GraphView(
+                segments: segments,
+                minX: minX,
+                maxX: maxX,
+                minY: minY,
+                maxY: maxY
+            )
         }
     }
 }
