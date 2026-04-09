@@ -47,7 +47,25 @@ struct ContentView: View {
                     print("invalid equation")
                     return
                 }
-                segments = Graphing.MarchingSquares(minX: minX, minY: minY, maxX: maxX, maxY: maxY, resolution: 500, left: String(parts[0]), right: String(parts[1]))
+                segments = []
+                Task.detached {
+                    var buffer: [LineSegment] = []
+                    
+                    Graphing.MarchingSquares(minX: minX, minY: minY, maxX: maxX, maxY: maxY, resolution: 500, left: String(parts[0]), right: String(parts[1])) { segment in
+                        buffer.append(segment)
+                        if buffer.count >= 100 {
+                            let chunk = buffer
+                            buffer.removeAll()
+                            DispatchQueue.main.async {
+                                segments.append(contentsOf: chunk)
+                            }
+                        }
+                    }
+                    
+                    DispatchQueue.main.async {
+                        segments.append(contentsOf: buffer)
+                    }
+                }
             }
             GraphView(segments: segments, minX: minX, maxX: maxX, minY: minY, maxY: maxY)
         }

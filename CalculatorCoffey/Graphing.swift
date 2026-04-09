@@ -11,7 +11,7 @@ class Graphing {
     
     static let epsilon = 1e-9
     
-    static func MarchingSquares(minX: Double, minY: Double, maxX: Double, maxY: Double, resolution: Int, left: String, right: String) -> [LineSegment] {
+    static func MarchingSquares(minX: Double, minY: Double, maxX: Double, maxY: Double, resolution: Int, left: String, right: String, segments: (LineSegment) -> Void) {
         
         let xStep = (maxX - minX) / Double(resolution)
         let yStep = (maxY - minY) / Double(resolution)
@@ -23,7 +23,7 @@ class Graphing {
             try interpreter = Interpreter("\(left) - (\(right))", variables: [:])
         } catch(let e) {
             print(e)
-            return []
+            return
         }
         
         for i in 0...resolution {
@@ -37,14 +37,12 @@ class Graphing {
                     val = try interpreter.interpret()
                 } catch(let e) {
                     print(e)
-                    return []
+                    return
                 }
                 
                 on[j][i] = val >= 0
             }
         }
-        
-        var segments: [LineSegment] = []
         
         for i in 0..<resolution {
             let x = minX + Double(i) * xStep
@@ -69,29 +67,28 @@ class Graphing {
                 
                 switch num {
                 case 1, 14:
-                    segments.append(LineSegment(l, b))
+                    segments(LineSegment(l, b))
                 case 2, 13:
-                    segments.append(LineSegment(b, r))
+                    segments(LineSegment(b, r))
                 case 3, 12:
-                    segments.append(LineSegment(l, r))
+                    segments(LineSegment(l, r))
                 case 4, 11:
-                    segments.append(LineSegment(t, r))
+                    segments(LineSegment(t, r))
                 case 5:
-                    segments.append(LineSegment(l, b))
-                    segments.append(LineSegment(t, r))
+                    segments(LineSegment(l, b))
+                    segments(LineSegment(t, r))
                 case 6, 9:
-                    segments.append(LineSegment(t, b))
+                    segments(LineSegment(t, b))
                 case 7, 8:
-                    segments.append(LineSegment(l, t))
+                    segments(LineSegment(l, t))
                 case 10:
-                    segments.append(LineSegment(l, t))
-                    segments.append(LineSegment(b, r))
+                    segments(LineSegment(l, t))
+                    segments(LineSegment(b, r))
                 default: break
                 }
             }
         }
         print("done getting points")
-        return segments
     }
     
     static func roundWithEpsilon(_ x: Double) -> Double {
