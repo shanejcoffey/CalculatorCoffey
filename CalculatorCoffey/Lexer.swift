@@ -129,7 +129,7 @@ class Lexer {
             let start = pos
             let function = function()
             
-            let functions: Set<String> = ["sin", "cos", "tan", "log"]
+            let functions: Set<String> = ["sin", "cos", "tan", "log", "sqrt"]
             
             if functions.contains(function) {
                 return Token(type: .function, value: function, pos: start)

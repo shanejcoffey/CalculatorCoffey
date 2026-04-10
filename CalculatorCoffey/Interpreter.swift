@@ -47,10 +47,14 @@ class Interpreter {
     }
     
     func visitVariable(_ node: VariableNode) throws -> Double {
-        guard let value = variables[node.token.value] else {
-            throw InterpreterError.unknownVariable(name: node.token.value, position: node.token.pos)
+        if let value = variables[node.token.value] {
+            return value
         }
-        return value
+        if let value = Interpreter.constants[node.token.value] {
+            return value
+        }
+        
+        throw InterpreterError.unknownVariable(name: node.token.value, position: node.token.pos)
     }
     
     func visitUnary(_ node: UnaryNode) throws -> Double {
@@ -118,9 +122,22 @@ class Interpreter {
             } else {
                 return log2(try visit(node.args[1])) / log2(try visit(node.args[0]))
             }
+            
+        case "sqrt":
+            guard node.args.count == 1 else {
+                throw InterpreterError.badArguments(name: node.name, position: node.token.pos)
+            }
+            return sqrt(try visit(node.args[0]))
         
         default:
             throw InterpreterError.unknownVariable(name: node.name, position: node.token.pos)
         }
     }
+}
+
+extension Interpreter {
+    static let constants: [String: Double] = [
+        "pi": Double.pi,
+        "e": M_E
+    ]
 }
